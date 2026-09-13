@@ -49,6 +49,8 @@ return [
         //        ],
     ],
 
+    'curator_chat_id' => env('TELEGRAM_CURATOR_CHAT_ID'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Bot Name
