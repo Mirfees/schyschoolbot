@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AccessCodeController;
+use App\Http\Controllers\Admin\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,6 +25,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('/codes', [AccessCodeController::class, 'store'])->name('codes.store');
     Route::patch('/codes/{accessCode}/toggle', [AccessCodeController::class, 'toggle'])->name('codes.toggle');
     Route::delete('/codes/{accessCode}', [AccessCodeController::class, 'destroy'])->name('codes.destroy');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });
 
 require __DIR__.'/auth.php';

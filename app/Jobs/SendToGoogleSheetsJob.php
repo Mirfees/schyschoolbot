@@ -41,8 +41,8 @@ class SendToGoogleSheetsJob implements ShouldQueue
                 $this->isUrgent ? 'Внеплановое (срочное)' : 'Плановое'
             ];
 
-            Sheets::spreadsheet(config('services.google.sheet_id'))
-                ->sheet(config('services.google.sheet_name'))
+            Sheets::spreadsheet(config('google.post_spreadsheet_id'))
+                ->sheet(config('google.post_sheet_id'))
                 ->append([$row]);
 
         } catch (\Throwable $e) {

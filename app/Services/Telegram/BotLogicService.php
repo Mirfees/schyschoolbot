@@ -8,12 +8,14 @@ use App\Jobs\NotifyAdminJob;
 use App\Jobs\SendToGoogleSheetsJob;
 use App\Models\AccessCode;
 use App\Models\User;
+use phpDocumentor\Reflection\Types\Boolean;
 use Telegram\Bot\Objects\Update;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Keyboard\Keyboard;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Controllers\PutReport;
 
 class BotLogicService
 {
@@ -139,6 +141,7 @@ class BotLogicService
         // Блокируем повторное нажатие "Наблюдений нет"
         Cache::put($noObsKey, true, now()->endOfWeek());
 
+        PutReport::dispatch($user, 'Наблюдений нет', null, null, false);
         SendToGoogleSheetsJob::dispatch($user, 'Наблюдений нет', null, null, false);
 
         Telegram::sendMessage([
@@ -192,17 +195,21 @@ class BotLogicService
 
     private function handleTextObservation(int $chatId, ?string $text, User $user): void
     {
-        $weekKey = 'week_' . now()->weekOfYear . '_year_' . now()->year;
-        Cache::put("reported_{$user->telegram_id}_{$weekKey}", true, now()->endOfWeek());
-
         $payload = $this->stateService->getPayload($chatId);
         $category = $payload['category'] ?? 'Другое';
 
-        // 1. Отправка в Google Таблицу (Фоновая задача)
-        SendToGoogleSheetsJob::dispatch($user, 'Сигнал', $category, $text, true);
+        $weekKey = 'week_' . now()->weekOfYear . '_year_' . now()->year;
+        $cacheKey = "reported_{$user->telegram_id}_{$weekKey}";
+        $isUrgent = false;
+        if (Cache::has($cacheKey)) {
+            NotifyAdminJob::dispatch($user, $category, $text);
+            $isUrgent = true;
+        }
 
-        // 2. Срочное уведомление психологу (Фоновая задача)
-        NotifyAdminJob::dispatch($user, $category, $text);
+        Cache::put($cacheKey, true, now()->endOfWeek());
+
+        PutReport::handle($user, 'Сигнал', $category, $text, $isUrgent);
+        SendToGoogleSheetsJob::dispatch($user, 'Сигнал', $category, $text, $isUrgent);
 
         $this->stateService->clearState($chatId);
         $this->showMainMenu($chatId, "✅ Спасибо, сигнал принят и передан куратору.");
