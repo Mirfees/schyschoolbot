@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('access_code')->nullable()->after('role');
-            $table->foreign('access_code')->references('id')->on('access_codes')->cascadeOnDelete();
+            $table->foreignId('access_code')
+                ->nullable()
+                ->after('role')
+                ->constrained('access_codes')
+                ->cascadeOnDelete();
         });
     }
 
