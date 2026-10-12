@@ -39,6 +39,7 @@ return [
              * @see https://core.telegram.org/bots/api#update
              */
             'allowed_updates' => null,
+            'base_bot_url'     => env('TELEGRAM_BASE_URL', 'https://api.telegram.org'),
             'commands' => [
                 // Acme\Project\Commands\MyTelegramBot\BotCommand::class
             ],
