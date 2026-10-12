@@ -27,6 +27,14 @@ class SendWeeklyReminders extends Command
                 continue;
             }
 
+            if (!$user->telegram_id) {
+                continue; // Пропускаем пользователей без telegram_id
+            }
+
+            if (!$user->access_code) {
+                continue; // Пропускаем заблокированных пользователей
+            }
+
             try {
                 Telegram::sendMessage([
                     'chat_id' => $user->telegram_id,
