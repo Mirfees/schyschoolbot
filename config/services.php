@@ -35,5 +35,9 @@ return [
         ],
     ],
 
+    'telegram' => [
+        'base_url' => env('TELEGRAM_BASE_URL'),
+    ],
+
 
 ];
