@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('telegram_id')->nullable()->unique();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
+            $table->enum('role', ['student', 'admin'])->default('student');
+            $table->string('class_name', 10)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
-            $table->unsignedBigInteger('telegram_id')->nullable()->unique()->after('id');
-            $table->enum('role', ['student', 'admin'])->default('student')->after('email');
-            $table->string('class_name', 10)->nullable()->after('role');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
