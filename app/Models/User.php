@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'telegram_id', 'role', 'class_name'])]
+#[Fillable(['name', 'email', 'password', 'telegram_id', 'role', 'class_name', 'access_code'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -32,6 +32,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function accessCode(): HasOne
+    {
+        return $this->hasOne(AccessCode::class);
     }
 
     public function isAdmin(): bool

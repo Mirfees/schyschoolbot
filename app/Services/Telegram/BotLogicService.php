@@ -32,7 +32,7 @@ class BotLogicService
         $user = User::where('telegram_id', $chatId)->first();
 
         // 1. Если пользователя нет (первый вход)
-        if (!$user) {
+        if (!$user || $user->access_code === null) {
             $this->handleFirstLogin($chatId, $text);
             return;
         }
@@ -69,23 +69,33 @@ class BotLogicService
         // Проверяем код
         $accessCode = AccessCode::where('code', $text)->where('is_active', true)->first();
 
-        if (!$accessCode) {
+        if (!$accessCode || $accessCode->linked_user) {
             Telegram::sendMessage(['chat_id' => $chatId, 'text' => '❌ Неверный или отозванный код. Попробуйте еще раз:']);
             return;
         }
+
+
 
         // Регистрируем наблюдателя и привязываем к классу
         try {
             $user = User::updateOrCreate(
                 ['telegram_id' => $chatId],
                 [
-                    'role'       => 'student',
-                    'class_name' => $accessCode->class_name,
-                    'name'       => 'Ученик ' . $accessCode->class_name,
-                    'email'      => $chatId . '@schoolbot.local',
-                    'password'   => Hash::make(Str::random(24)),
+                    'role'          => 'student',
+                    'class_name'    => $accessCode->class_name,
+                    'name'          => 'Ученик ' . $accessCode->class_name,
+                    'email'         => $chatId . '@schoolbot.local',
+                    'password'      => Hash::make(Str::random(24)),
+                    'access_code'   => $accessCode->id
                 ]
             );
+
+            // Привязываем код к пользователю
+            AccessCode::updateOrCreate(
+                ['code' => $accessCode->code],
+                ['linked_user' => $user->id]
+            );
+
         } catch (\Exception $e) {
             Log::error('Ошибка регистрации ученика-наблюдателя', [
                 'chat_id' => $chatId,

@@ -7,6 +7,7 @@ use App\Models\AccessCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Services\Telegram\UserStateService;
 
 class AccessCodeController extends Controller
 {
@@ -34,13 +35,39 @@ class AccessCodeController extends Controller
         $accessCode->update(['is_active' => !$accessCode->is_active]);
 
         $status = $accessCode->is_active ? 'активирован' : 'деактивирован';
+
+        if (!$accessCode->is_active) {
+            $user = $accessCode->user;
+
+            if ($user) {
+                $user->update(
+                    [
+                        'access_code' => null,
+                    ]
+                );
+
+
+            }
+        }
+
         return back()->with('success', "Код для класса {$accessCode->class_name} {$status}.");
     }
 
     public function destroy(AccessCode $accessCode): RedirectResponse
     {
+        $user = $accessCode->user;
+
+        if ($user) {
+            $user->update(
+                [
+                    'access_code' => null,
+                ]
+            );
+        }
+
         $accessCode->delete();
 
         return back()->with('success', 'Код безвозвратно удален.');
+
     }
 }
