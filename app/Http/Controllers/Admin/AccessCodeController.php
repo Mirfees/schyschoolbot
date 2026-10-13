@@ -45,8 +45,7 @@ class AccessCodeController extends Controller
                         'access_code' => null,
                     ]
                 );
-
-
+                $accessCode->update(['linked_user' => null]);
             }
         }
 
